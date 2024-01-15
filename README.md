@@ -4,3 +4,4 @@ to run the poject
 3. in services/stripe.service.js, you need to add ur stripe secret key! const stripe = require('stripe')('SECRET_KEY_HERE');
 
 This express repo is just for  poc purpose to demonstrate how we can create, cancel and update a subscription using stripe checkout page
+you can run the frontend part using this repo https://github.com/sarahzayat2019/stripe-checkout-subscription-angular
