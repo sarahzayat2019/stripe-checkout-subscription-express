@@ -1,4 +1,4 @@
-const stripe = require('stripe')('SECRET_KEY_HERE');
+const stripe = require('stripe')('SK_KEY');
 
 async function getProducts(productId) {
     return await stripe.products.retrieve(productId).then((it) => {
@@ -38,7 +38,6 @@ async function startSubscription(priceId, count, customerId) {
                 quantity: Number(count),
             },
         ],
-        locale: "",
         mode: 'subscription',
     });
     return session;
@@ -60,7 +59,6 @@ async function getSubscriptionSession(sessionId) {
 async function getCustomerInvoices(customerId) {
     const invoices = await stripe.invoices.list({
         customer: customerId,
-        limit: 5
     });
     return invoices.data.map((it) => {
         return {
@@ -84,8 +82,7 @@ async function cancelSubscription(subscriptionId) {
 
 async function updateSubscription(subscriptionId, newPriceId) {
     const currentSubscription = await getSubscriptionById(subscriptionId);
-    console.log(currentSubscription.items.data);
-    const test = await stripe.subscriptions.update(
+    const updateRequest = await stripe.subscriptions.update(
         subscriptionId,
         {
             proration_behavior: 'create_prorations',
@@ -99,8 +96,7 @@ async function updateSubscription(subscriptionId, newPriceId) {
             ],
         }
     );
-    console.log(test);
-    return test;
+    return updateRequest;
 }
 
 module.exports = {
