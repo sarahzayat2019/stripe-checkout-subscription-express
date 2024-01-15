@@ -90,8 +90,6 @@ async function updateSubscription(subscriptionId, newPriceId) {
         {
             proration_behavior: 'create_prorations',
             billing_cycle_anchor: 'now',
-            pay_immediately: false,
-
             items: [
                 {
                     id: currentSubscription.items.data[0].id,
