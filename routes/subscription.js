@@ -7,6 +7,14 @@ router.get('/start', async function (req, res, next) {
     const result = await stripeService.startSubscription(req.query.priceId, req.query.count, req.query.customerId);
     res.json(result);
 });
+router.get('/start/payment', async function (req, res, next) {
+    const result = await stripeService.startSubscriptionByPayment(req.query.count, req.query.customerId);
+    res.json(result);
+});
+router.post('/create/invoice', async function (req, res, next) {
+    const result = await stripeService.createInvoice();
+    res.json(result);
+});
 
 router.delete('/cancel/:id', async function (req, res, next) {
     const result = await stripeService.cancelSubscription(req.params.id);

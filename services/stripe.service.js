@@ -1,4 +1,4 @@
-const stripe = require('stripe')('SK_KEY');
+const stripe = require('stripe')('SECRET_KEY');
 
 async function getProducts(productId) {
     return await stripe.products.retrieve(productId).then((it) => {
@@ -6,9 +6,11 @@ async function getProducts(productId) {
     });
 
 }
+
 async function getSubscriptionById(subscriptionId) {
     return await stripe.subscriptions.retrieve(subscriptionId);
 }
+
 //listing prices by product id
 async function getProductPrices(productId) {
     const prices = await stripe.prices.list({
@@ -29,7 +31,8 @@ async function getProductPrices(productId) {
 async function startSubscription(priceId, count, customerId) {
     const session = await stripe.checkout.sessions.create({
         // the redirect url can be sent from the frontend
-        success_url: 'http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}',
+        success_url: 'http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}', // it can be sent from the FE
+        // return_url we can use return url
         customer: customerId, // this is used to not create multiple customer for a payment, and when invoices are collected they are collected under this customer id
         // as a solution, we can store invoices ids in our data base and fetch them under a company
         line_items: [
@@ -39,6 +42,38 @@ async function startSubscription(priceId, count, customerId) {
             },
         ],
         mode: 'subscription',
+    });
+    return session;
+}
+
+async function startSubscriptionByPayment(count, customerId) {
+    const session = await stripe.checkout.sessions.create({
+        // the redirect url can be sent from the frontend
+        success_url: 'http://localhost:4200/success?session_id={CHECKOUT_SESSION_ID}', // it can be sent from the FE
+        // return_url we can use return url
+        customer: customerId, // this is used to not create multiple customer for a payment, and when invoices are collected they are collected under this customer id
+        // as a solution, we can store invoices ids in our data base and fetch them under a company
+        invoice_creation: {
+            enabled: true,
+        },
+        line_items: [ // all arguments are required
+            {
+                price_data: {
+                    unit_amount: 4000, //this is in cents
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Test Product'
+                    },
+                },
+                quantity: count,
+            },
+        ],
+        payment_intent_data: {
+            setup_future_usage: "on_session",
+        },
+
+
+        mode: 'payment',
     });
     return session;
 }
@@ -59,6 +94,7 @@ async function getSubscriptionSession(sessionId) {
 async function getCustomerInvoices(customerId) {
     const invoices = await stripe.invoices.list({
         customer: customerId,
+
     });
     return invoices.data.map((it) => {
         return {
@@ -99,6 +135,35 @@ async function updateSubscription(subscriptionId, newPriceId) {
     return updateRequest;
 }
 
+async function createInvoice() {
+    const customerId = "cus_PNy3bcnky98XBO";
+    const quantity = 5
+    const paymentMethods = await stripe.customers.listPaymentMethods(
+        customerId,
+        {
+            limit: 1,
+        }
+    );
+
+    const invoice = await stripe.invoices.create(
+        {
+            customer: customerId,
+            currency: 'usd',
+            auto_advance: false,
+            default_payment_method: paymentMethods.data[0].id
+        },
+    );
+    await stripe.invoiceItems.create(
+        {
+            customer: customerId,
+            amount: 4000 * quantity,
+            invoice: invoice.id
+        },
+    );
+    return await stripe.invoices.pay(invoice.id);
+
+}
+
 module.exports = {
     getProducts,
     getProductPrices,
@@ -107,5 +172,6 @@ module.exports = {
     getCustomerInvoices,
     cancelSubscription,
     updateSubscription,
-    getSubscriptionById
+    startSubscriptionByPayment,
+    createInvoice
 };
