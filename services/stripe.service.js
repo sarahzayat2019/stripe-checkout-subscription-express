@@ -68,17 +68,16 @@ async function startSubscriptionByPayment(count, customerId) {
                 quantity: count,
             },
         ],
+        // we need this to save user payment method for future use
         payment_intent_data: {
             setup_future_usage: "on_session",
         },
-
-
         mode: 'payment',
     });
     return session;
 }
 
-async function getSubscriptionSession(sessionId) {
+async function getCheckoutSession(sessionId) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     return {
         subTotal: (session.amount_subtotal / 100).toLocaleString("en-US", {
@@ -135,7 +134,7 @@ async function updateSubscription(subscriptionId, newPriceId) {
     return updateRequest;
 }
 
-async function createInvoice() {
+async function createAndPayInvoice() {
     const customerId = "cus_PNy3bcnky98XBO";
     const quantity = 5
     const paymentMethods = await stripe.customers.listPaymentMethods(
@@ -168,10 +167,10 @@ module.exports = {
     getProducts,
     getProductPrices,
     startSubscription,
-    getSubscriptionSession,
+    getCheckoutSession,
     getCustomerInvoices,
     cancelSubscription,
     updateSubscription,
     startSubscriptionByPayment,
-    createInvoice
+    createAndPayInvoice
 };

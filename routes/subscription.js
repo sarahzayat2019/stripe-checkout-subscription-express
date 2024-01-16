@@ -12,7 +12,7 @@ router.get('/start/payment', async function (req, res, next) {
     res.json(result);
 });
 router.post('/create/invoice', async function (req, res, next) {
-    const result = await stripeService.createInvoice();
+    const result = await stripeService.createAndPayInvoice();
     res.json(result);
 });
 
@@ -25,7 +25,7 @@ router.post('/update/:id/:priceId', async function (req, res, next) {
     res.json(result);
 });
 router.get('/session/:id', async function (req, res, next) {
-    const result = await stripeService.getSubscriptionSession(req.params.id);
+    const result = await stripeService.getCheckoutSession(req.params.id);
     res.json(result);
 });
 router.get('/invoices/customer/:id', async function (req, res, next) {
